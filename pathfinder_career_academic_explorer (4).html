@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder: Career & Academic Explorer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Confetti JS for Quiz completion -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712;
+            color: #f8fafc;
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(79, 70, 229, 0.18) 0px, transparent 50%),
+                radial-gradient(at 90% 10%, rgba(147, 51, 234, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 60%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+                radial-gradient(at 80% 90%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-600 selection:text-white">
+
+    <!-- Header & Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-600/30 text-white font-black text-xl">
+                    <i class="fa-solid fa-compass"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">PathFinder</span>
+                    <span class="block text-[10px] uppercase font-bold tracking-widest text-indigo-400">Career & Academic Explorer</span>
+                </div>
+            </div>
+
+            <!-- Desktop Navigation Tabs -->
+            <nav class="hidden md:flex items-center space-x-1 bg-slate-900/80 p-1.5 rounded-full border border-slate-800">
+                <button type="button" onclick="switchTab('home')" id="nav-home" class="nav-btn px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 bg-indigo-600 text-white shadow-md">
+                    <i class="fa-solid fa-house mr-2"></i>Home
+                </button>
+                <button type="button" onclick="switchTab('modern')" id="nav-modern" class="nav-btn px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-rocket mr-2"></i>Modern Careers
+                </button>
+                <button type="button" onclick="switchTab('academic')" id="nav-academic" class="nav-btn px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-graduation-cap mr-2"></i>Academic Streams
+                </button>
+                <button type="button" onclick="switchTab('skills')" id="nav-skills" class="nav-btn px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-lightbulb mr-2"></i>Skills Guide
+                </button>
+                <button type="button" onclick="switchTab('quiz')" id="nav-quiz" class="nav-btn px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Path Quiz
+                </button>
+                <button type="button" onclick="switchTab('about')" id="nav-about" class="nav-btn px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-circle-info mr-2"></i>About
+                </button>
+            </nav>
+
+            <!-- Mobile Menu Toggle -->
+            <button type="button" onclick="toggleMobileMenu()" class="md:hidden text-slate-300 hover:text-white p-2 text-2xl focus:outline-none">
+                <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Navigation Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden px-4 pt-2 pb-4 space-y-2 bg-slate-950 border-b border-slate-800">
+            <button type="button" onclick="switchTab('home'); toggleMobileMenu();" class="block w-full text-left px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-400">
+                <i class="fa-solid fa-house mr-3 w-5"></i>Home
+            </button>
+            <button type="button" onclick="switchTab('modern'); toggleMobileMenu();" class="block w-full text-left px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-400">
+                <i class="fa-solid fa-rocket mr-3 w-5"></i>Modern Careers
+            </button>
+            <button type="button" onclick="switchTab('academic'); toggleMobileMenu();" class="block w-full text-left px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-400">
+                <i class="fa-solid fa-graduation-cap mr-3 w-5"></i>Academic Streams
+            </button>
+            <button type="button" onclick="switchTab('skills'); toggleMobileMenu();" class="block w-full text-left px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-400">
+                <i class="fa-solid fa-lightbulb mr-3 w-5"></i>Skills Guide
+            </button>
+            <button type="button" onclick="switchTab('quiz'); toggleMobileMenu();" class="block w-full text-left px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-400">
+                <i class="fa-solid fa-wand-magic-sparkles mr-3 w-5"></i>Path Quiz
+            </button>
+            <button type="button" onclick="switchTab('about'); toggleMobileMenu();" class="block w-full text-left px-4 py-2.5 rounded-xl text-base font-medium text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-400">
+                <i class="fa-solid fa-circle-info mr-3 w-5"></i>About Project
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Application Container -->
+    <main class="flex-grow">
+
+        <!-- ================= TAB 1: HOME PAGE ================= -->
+        <section id="tab-home" class="tab-content active">
+            <!-- Hero Section -->
+            <div class="relative overflow-hidden py-20 lg:py-32">
+                <!-- Glowing background elements -->
+                <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute top-1/3 right-10 w-72 h-72 bg-purple-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                    <div class="inline-flex items-center space-x-2 bg-indigo-950/80 border border-indigo-500/30 px-4 py-2 rounded-full mb-8 shadow-inner">
+                        <span class="flex h-2 w-2 rounded-full bg-indigo-400 animate-ping"></span>
+                        <span class="text-xs sm:text-sm font-medium text-indigo-300">Your Complete Career & Academic Roadmap</span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 max-w-4xl mx-auto leading-tight">
+                        Explore <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Modern Careers</span> & <span class="bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">Academic Streams</span>
+                    </h1>
+
+                    <p class="text-lg sm:text-xl text-slate-400 mb-10 max-w-2xl mx-auto font-normal">
+                        Confused about what to do next? Whether you prefer structured academic excellence or cutting-edge tech and creative careers, your roadmap starts right here.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-5">
+                        <button type="button" onclick="switchTab('modern')" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-base shadow-xl shadow-indigo-600/30 transition-all transform hover:-translate-y-0.5">
+                            <i class="fa-solid fa-rocket mr-2"></i>Explore Modern Careers
+                        </button>
+                        <button type="button" onclick="switchTab('academic')" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-base shadow-lg transition-all transform hover:-translate-y-0.5">
+                            <i class="fa-solid fa-graduation-cap mr-2 text-blue-400"></i>View Academic Streams
+                        </button>
+                    </div>
+
+                    <!-- Highlights Grid with explicit href anchor tags -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-20 text-left">
+                        <a href="#modern" onclick="switchTab('modern'); return false;" class="block bg-slate-900/60 border border-slate-800/80 hover:border-indigo-500/50 p-6 rounded-3xl backdrop-blur-sm transition-all cursor-pointer group">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform pointer-events-none">
+                                <i class="fa-solid fa-gamepad"></i>
+                            </div>
+                            <h3 class="text-lg font-bold mb-2 group-hover:text-indigo-300 transition-colors pointer-events-none">Modern & Tech Careers</h3>
+                            <p class="text-sm text-slate-400 pointer-events-none">Discover Game Dev, UI/UX Design, Ethical Hacking, Digital Media, and Robotics Engineering.</p>
+                        </a>
+                        <a href="#academic" onclick="switchTab('academic'); return false;" class="block bg-slate-900/60 border border-slate-800/80 hover:border-blue-500/50 p-6 rounded-3xl backdrop-blur-sm transition-all cursor-pointer group">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform pointer-events-none">
+                                <i class="fa-solid fa-book-open"></i>
+                            </div>
+                            <h3 class="text-lg font-bold mb-2 group-hover:text-blue-300 transition-colors pointer-events-none">Traditional Streams</h3>
+                            <p class="text-sm text-slate-400 pointer-events-none">Comprehensive guides to Science (PCM/PCB), Commerce, Arts, Engineering, Medicine, and Law.</p>
+                        </a>
+                        <a href="#quiz" onclick="switchTab('quiz'); return false;" class="block bg-slate-900/60 border border-slate-800/80 hover:border-purple-500/50 p-6 rounded-3xl backdrop-blur-sm transition-all cursor-pointer group">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform pointer-events-none">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <h3 class="text-lg font-bold mb-2 group-hover:text-purple-300 transition-colors pointer-events-none">Interactive Matcher Quiz</h3>
+                            <p class="text-sm text-slate-400 pointer-events-none">Take our 6-question quiz to receive a customized recommendation and score breakdown instantly.</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: MODERN & TECH CAREERS ================= -->
+        <section id="tab-modern" class="tab-content py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <span class="text-xs uppercase font-bold text-indigo-400 tracking-widest bg-indigo-950 px-3 py-1 rounded-full border border-indigo-500/30">Future-Ready</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3 mb-4">Modern & Tech Careers</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">Explore high-demand creative, digital, and technical career paths that thrive in today's digital economy.</p>
+            </div>
+
+            <!-- Modern Grid -->
+            <div id="modern-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated via JS -->
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: ACADEMIC STREAMS & PATHWAYS ================= -->
+        <section id="tab-academic" class="tab-content py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <span class="text-xs uppercase font-bold text-blue-400 tracking-widest bg-blue-950 px-3 py-1 rounded-full border border-blue-500/30">Foundational Excellence</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3 mb-4">Academic Streams & Pathways</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">Traditional high school streams and professional pathways for students who prefer structured academic rigor.</p>
+            </div>
+
+            <!-- Academic Grid -->
+            <div id="academic-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated via JS -->
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: SKILLS & FUTURE-PROOF GUIDE ================= -->
+        <section id="tab-skills" class="tab-content py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <span class="text-xs uppercase font-bold text-purple-400 tracking-widest bg-purple-950 px-3 py-1 rounded-full border border-purple-500/30">Beyond Textbooks</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3 mb-4">Skills & Future-Proof Guide</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">No matter which stream or career you choose, mastering these vital superpower skills will set you apart.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-3xl">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2 text-white">Coding & Logic</h3>
+                    <p class="text-sm text-slate-400">Understanding Python or algorithmic logic helps automate repetitive tasks and powers modern problem-solving.</p>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-3xl">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2 text-white">Financial Literacy</h3>
+                    <p class="text-sm text-slate-400">Mastering budgeting, compound interest, investments, and basic tax knowledge early in life.</p>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-3xl">
+                    <div class="w-12 h-12 rounded-2xl bg-pink-500/10 text-pink-400 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-pen-paintbrush"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2 text-white">Visual Design & UI</h3>
+                    <p class="text-sm text-slate-400">Using tools like Figma or Canva to present your ideas with professional polish and visual appeal.</p>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-3xl">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2 text-white">Public Speaking</h3>
+                    <p class="text-sm text-slate-400">Clear communication and persuasive writing are high-value assets in leadership and corporate environments.</p>
+                </div>
+            </div>
+
+            <!-- Synergy Banner -->
+            <div class="bg-gradient-to-r from-indigo-950/80 to-purple-950/80 border border-indigo-500/30 p-8 rounded-3xl text-center max-w-4xl mx-auto">
+                <h3 class="text-2xl font-bold mb-3 text-white">The Best of Both Worlds</h3>
+                <p class="text-slate-300 text-sm sm:text-base mb-6 max-w-2xl mx-auto">
+                    You don't have to choose strictly between academics and modern tech. Many top professionals use a strong academic foundation in Mathematics or Science while building modern creative apps on the side!
+                </p>
+                <button type="button" onclick="switchTab('quiz')" class="px-8 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all">
+                    Take the Path Matcher Quiz
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: INTERACTIVE QUIZ ================= -->
+        <section id="tab-quiz" class="tab-content py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="text-xs uppercase font-bold text-indigo-400 tracking-widest bg-indigo-950 px-3 py-1 rounded-full border border-indigo-500/30">Interactive Assessment</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3 mb-4">Career & Academic Path Quiz</h2>
+                <p class="text-slate-400">Answer 6 in-depth questions about your hobbies, working style, problem-solving habits, and future vision to discover your tailored career and stream breakdown!</p>
+            </div>
+
+            <div id="quiz-container" class="bg-slate-900/80 border border-slate-800 p-6 sm:p-10 rounded-3xl shadow-2xl backdrop-blur-md">
+                <!-- Progress Header -->
+                <div class="flex justify-between items-center mb-6 text-sm text-slate-400 font-medium">
+                    <span id="quiz-step-indicator">Question 1 of 6</span>
+                    <span id="quiz-progress-percent">16% Completed</span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-800 h-2 rounded-full mb-8 overflow-hidden">
+                    <div id="quiz-bar" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-full w-1/6 transition-all duration-300"></div>
+                </div>
+
+                <!-- Dynamic Question Box -->
+                <div id="quiz-question-box"></div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 6: ABOUT THE PROJECT ================= -->
+        <section id="tab-about" class="tab-content py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+            <div class="bg-slate-900/80 border border-slate-800 p-6 sm:p-10 rounded-3xl shadow-2xl backdrop-blur-md">
+                <div class="flex items-center space-x-4 mb-6 pb-6 border-b border-slate-800">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold">Project Overview & Details</h2>
+                        <p class="text-sm text-slate-400">School Project Presentation</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6 text-slate-300">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-2"><i class="fa-solid fa-bullseye text-indigo-400 mr-2"></i>Project Objective</h3>
+                        <p class="text-sm sm:text-base leading-relaxed text-slate-400">
+                            <strong>PathFinder: Career & Academic Explorer</strong> is built as a complete single-page web application designed to help students navigate post-education choices. It bridges both modern non-academic fields (Game Dev, UI/UX, Ethical Hacking) and traditional academic streams (Science PCM/PCB, Commerce, Arts) with interactive exploration tools and a customized quiz.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div class="bg-slate-950/60 p-5 rounded-2xl border border-slate-800">
+                            <h4 class="font-bold text-white mb-2 flex items-center"><i class="fa-solid fa-code text-purple-400 mr-2"></i>Technologies Used</h4>
+                            <ul class="text-sm text-slate-400 space-y-1">
+                                <li>• HTML5 Semantic Markup</li>
+                                <li>• Tailwind CSS for Styling & Responsive Design</li>
+                                <li>• Vanilla JavaScript for Dynamic State & Filtering</li>
+                                <li>• Canvas Confetti & FontAwesome Icons</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-950/60 p-5 rounded-2xl border border-slate-800">
+                            <h4 class="font-bold text-white mb-2 flex items-center"><i class="fa-solid fa-star text-pink-400 mr-2"></i>Key Features</h4>
+                            <ul class="text-sm text-slate-400 space-y-1">
+                                <li>• Dual Explorer Tabs (Modern vs Academic)</li>
+                                <li>• Interactive modal popups with detailed skill tags</li>
+                                <li>• 6-question step-by-step quiz with score breakdown</li>
+                                <li>• Future-proof skills guide</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800 text-center">
+                        <p class="text-xs text-slate-500">PathFinder Web Application v3.0 • Built with pride for school project presentation.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Details Modal -->
+    <div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 relative shadow-2xl animate-in fade-in zoom-in duration-200">
+            <button type="button" onclick="closeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-9 h-9 rounded-full flex items-center justify-center transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 py-8 text-center text-xs text-slate-500">
+        <p>&copy; 2026 PathFinder Career & Academic Explorer. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Modern Careers Database
+        const modernCareers = [
+            {
+                id: 101,
+                title: "Game Developer & AI Engineer",
+                category: "Modern Tech",
+                icon: "fa-gamepad",
+                color: "from-blue-600 to-cyan-500",
+                shortDesc: "Program interactive video games, 3D physics engines, and machine learning models.",
+                fullDesc: "Blends mathematics, graphics rendering, and programming languages like C++ or Python to build immersive virtual worlds and smart non-player characters.",
+                skills: ["Coding (Python/C++)", "Math Logic", "Creativity", "Debugging"],
+                scope: "The gaming and AI industries combined generate more annual revenue than movies and music globally."
+            },
+            {
+                id: 102,
+                title: "UI/UX & Product Designer",
+                category: "Modern Creative",
+                icon: "fa-palette",
+                color: "from-pink-500 to-rose-500",
+                shortDesc: "Design user-friendly interfaces and digital experiences for web and mobile apps.",
+                fullDesc: "Combines human psychology with graphic design to create digital products that are seamless, beautiful, and intuitive for users to navigate.",
+                skills: ["Figma / Adobe XD", "User Empathy", "Visual Aesthetics", "Wireframing"],
+                scope: "Every tech company, startup, and enterprise desperately needs UI/UX designers to retain users."
+            },
+            {
+                id: 103,
+                title: "Ethical Hacker (Cybersecurity)",
+                category: "Modern Tech",
+                icon: "fa-shield-halved",
+                color: "from-emerald-600 to-green-500",
+                shortDesc: "Legally penetrate computer networks to discover vulnerabilities before cybercriminals do.",
+                fullDesc: "Cybersecurity specialists who protect sensitive government and corporate data by testing security systems against threats.",
+                skills: ["Networking", "Linux OS", "Puzzle Solving", "Cryptographic Logic"],
+                scope: "Critical necessity as the world goes entirely digital. One of the highest-paid tech specializations."
+            },
+            {
+                id: 104,
+                title: "Digital Creator & Filmmaker",
+                category: "Modern Media",
+                icon: "fa-video",
+                color: "from-amber-600 to-yellow-500",
+                shortDesc: "Capture stunning nature documentaries or build digital media brands online.",
+                fullDesc: "Combines videography, storytelling, editing, and conservation awareness to educate and entertain audiences across platforms.",
+                skills: ["Video Editing", "Storytelling", "Camera Operation", "Audience Engagement"],
+                scope: "Massive growth in digital media platforms, streaming services, and independent creator economies."
+            },
+            {
+                id: 105,
+                title: "Robotics & IoT Engineer",
+                category: "Modern Tech",
+                icon: "fa-robot",
+                color: "from-purple-600 to-indigo-500",
+                shortDesc: "Build smart automated hardware, drones, and interconnected smart-home devices.",
+                fullDesc: "Integrates mechanical engineering, electronics, and microcontroller programming to bring physical machinery to life.",
+                skills: ["Arduino / C++", "Electronics", "Circuit Design", "Problem Solving"],
+                scope: "Driving industrial automation, smart manufacturing, and space exploration."
+            }
+        ];
+
+        // Academic Streams Database
+        const academicStreams = [
+            {
+                id: 201,
+                title: "Science (PCM) & Engineering",
+                stream: "Science (PCM)",
+                icon: "fa-atom",
+                color: "from-blue-500 to-indigo-500",
+                shortDesc: "Physics, Chemistry, Mathematics + Computer Science/Engineering pathways.",
+                fullDesc: "For students who love logic, equations, programming, and building complex technical systems. Leads to Engineering, Data Science, and Architecture.",
+                skills: ["Mathematics", "Physics", "Logical Coding", "Problem Solving"],
+                scope: "Extremely high demand across software development, AI, robotics, and core engineering industries worldwide."
+            },
+            {
+                id: 202,
+                title: "Science (PCB) & Medicine",
+                stream: "Science (PCB)",
+                icon: "fa-dna",
+                color: "from-emerald-500 to-teal-500",
+                shortDesc: "Physics, Chemistry, Biology + Clinical Medicine and Biotechnology pathways.",
+                fullDesc: "Perfect for those fascinated by living organisms, medical science, biotechnology, and health. Leads to MBBS, Dentistry, and Pharmacy.",
+                skills: ["Biology & Chemistry", "Empathy", "Patience", "Clinical Analysis"],
+                scope: "Evergreen career path with immense global respect and career opportunities in hospitals and biomedical research."
+            },
+            {
+                id: 203,
+                title: "Commerce & Chartered Accountancy",
+                stream: "Commerce",
+                icon: "fa-chart-line",
+                color: "from-amber-500 to-orange-500",
+                shortDesc: "Accountancy, Business Studies, Economics, and Financial Management.",
+                fullDesc: "Built for students interested in corporate finance, stock markets, accounting, and entrepreneurship. Leads to CA, Investment Banking, and Corporate Law.",
+                skills: ["Accountancy", "Economics", "Numerical Accuracy", "Business Law"],
+                scope: "Crucial for every corporation, startup, and bank globally. High earning potential and business stability."
+            },
+            {
+                id: 204,
+                title: "Arts / Humanities & Corporate Law",
+                stream: "Arts & Humanities",
+                icon: "fa-landmark",
+                color: "from-purple-500 to-indigo-500",
+                shortDesc: "History, Political Science, Sociology, Psychology, and Legal Studies.",
+                fullDesc: "Great for storytellers, debaters, and those passionate about law, public policy, civil services, and visual arts.",
+                skills: ["Critical Reading", "Public Speaking", "Negotiation", "Sociology"],
+                scope: "Expanding rapidly with corporate globalization, international law, public administration, and media."
+            },
+            {
+                id: 205,
+                title: "Civil Services (IAS / IPS)",
+                stream: "Any Stream",
+                icon: "fa-building-columns",
+                color: "from-indigo-600 to-purple-700",
+                shortDesc: "Lead district administration, formulate public policies, and manage national governance.",
+                fullDesc: "Government administrators who implement government schemes, manage law and order, and drive national development through competitive exams.",
+                skills: ["General Awareness", "Leadership", "Decision Making", "Public Administration"],
+                scope: "The pinnacle of public service and administrative power in national governance."
+            }
+        ];
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-md');
+                btn.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+            });
+            const activeNav = document.getElementById('nav-' + tabId);
+            if(activeNav) {
+                activeNav.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+                activeNav.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('mobile-menu-icon');
+            if (menu) {
+                menu.classList.toggle('hidden');
+                if (icon) {
+                    icon.className = menu.classList.contains('hidden') ? 'fa-solid fa-bars' : 'fa-solid fa-xmark';
+                }
+            }
+        }
+
+        // Render Modern Careers Grid
+        function renderModernCareers() {
+            const grid = document.getElementById('modern-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+
+            modernCareers.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900/60 border border-slate-800 hover:border-slate-700 p-6 rounded-3xl backdrop-blur-sm flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 shadow-lg";
+
+                let skillsHtml = item.skills.slice(0, 3).map(s => '<span class="bg-slate-800 text-slate-300 text-xs px-3 py-1 rounded-full font-medium">' + s + '</span>').join('');
+
+                card.innerHTML = '\
+                    <div>\
+                        <div class="flex items-center justify-between mb-4">\
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr ' + item.color + ' flex items-center justify-center text-white text-xl shadow-md">\
+                                <i class="fa-solid ' + item.icon + '"></i>\
+                            </div>\
+                            <span class="text-xs uppercase tracking-wider font-bold text-indigo-400 bg-indigo-950/60 px-3 py-1 rounded-full border border-indigo-500/20">' + item.category + '</span>\
+                        </div>\
+                        <h3 class="text-xl font-bold mb-2 text-white">' + item.title + '</h3>\
+                        <p class="text-sm text-slate-400 mb-6 line-clamp-2">' + item.shortDesc + '</p>\
+                        <div class="flex flex-wrap gap-1.5 mb-6">\
+                            ' + skillsHtml + '\
+                        </div>\
+                    </div>\
+                    <button type="button" onclick="openModalDetail(' + item.id + ', \'modern\')" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white font-semibold text-sm transition-all duration-200 flex items-center justify-center">\
+                        <span>View Details</span>\
+                        <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>\
+                    </button>\
+                ';
+                grid.appendChild(card);
+            });
+        }
+
+        // Render Academic Streams Grid
+        function renderAcademicStreams() {
+            const grid = document.getElementById('academic-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+
+            academicStreams.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900/60 border border-slate-800 hover:border-slate-700 p-6 rounded-3xl backdrop-blur-sm flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 shadow-lg";
+
+                let skillsHtml = item.skills.slice(0, 3).map(s => '<span class="bg-slate-800 text-slate-300 text-xs px-3 py-1 rounded-full font-medium">' + s + '</span>').join('');
+
+                card.innerHTML = '\
+                    <div>\
+                        <div class="flex items-center justify-between mb-4">\
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr ' + item.color + ' flex items-center justify-center text-white text-xl shadow-md">\
+                                <i class="fa-solid ' + item.icon + '"></i>\
+                            </div>\
+                            <span class="text-xs uppercase tracking-wider font-bold text-blue-400 bg-blue-950/60 px-3 py-1 rounded-full border border-blue-500/20">' + item.stream + '</span>\
+                        </div>\
+                        <h3 class="text-xl font-bold mb-2 text-white">' + item.title + '</h3>\
+                        <p class="text-sm text-slate-400 mb-6 line-clamp-2">' + item.shortDesc + '</p>\
+                        <div class="flex flex-wrap gap-1.5 mb-6">\
+                            ' + skillsHtml + '\
+                        </div>\
+                    </div>\
+                    <button type="button" onclick="openModalDetail(' + item.id + ', \'academic\')" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white font-semibold text-sm transition-all duration-200 flex items-center justify-center">\
+                        <span>View Stream Guide</span>\
+                        <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>\
+                    </button>\
+                ';
+                grid.appendChild(card);
+            });
+        }
+
+        // Modal Open / Close
+        function openModalDetail(id, type) {
+            let item = type === 'modern' ? modernCareers.find(c => c.id === id) : academicStreams.find(s => s.id === id);
+            if(!item) return;
+
+            let skillsHtml = item.skills.map(s => '<span class="bg-indigo-950/80 text-indigo-300 border border-indigo-500/30 text-xs px-3 py-1.5 rounded-xl font-medium">' + s + '</span>').join('');
+
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = '\
+                <div class="flex items-center space-x-4 mb-6">\
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr ' + item.color + ' flex items-center justify-center text-white text-2xl shadow-lg">\
+                        <i class="fa-solid ' + item.icon + '"></i>\
+                    </div>\
+                    <div>\
+                        <span class="text-xs uppercase font-bold text-indigo-400 tracking-wider">' + (type === 'modern' ? item.category : item.stream) + '</span>\
+                        <h3 class="text-2xl font-extrabold text-white">' + item.title + '</h3>\
+                    </div>\
+                </div>\
+                <div class="space-y-4 text-slate-300 text-sm leading-relaxed mb-6">\
+                    <div>\
+                        <h4 class="font-bold text-white mb-1">Overview:</h4>\
+                        <p class="text-slate-400">' + item.fullDesc + '</p>\
+                    </div>\
+                    <div>\
+                        <h4 class="font-bold text-white mb-1">Future Scope & Demand:</h4>\
+                        <p class="text-slate-400">' + item.scope + '</p>\
+                    </div>\
+                    <div>\
+                        <h4 class="font-bold text-white mb-2">Key Skills Needed:</h4>\
+                        <div class="flex flex-wrap gap-2">\
+                            ' + skillsHtml + '\
+                        </div>\
+                    </div>\
+                </div>\
+                <button type="button" onclick="closeModal()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all">\
+                    Got it!\
+                </button>\
+            ';
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        // Quiz State & Logic
+        let currentQuizStep = 0;
+        let quizScores = {
+            pcm: 0,
+            pcb: 0,
+            commerce: 0,
+            arts: 0,
+            modern: 0
+        };
+
+        const quizQuestions = [
+            {
+                question: "1. What kind of projects or activities naturally grab your attention?",
+                options: [
+                    { text: "Building software, coding apps, or designing video game mechanics", scores: { pcm: 2, modern: 3 } },
+                    { text: "Understanding how human bodies, nature, and biology work", scores: { pcb: 3 } },
+                    { text: "Analyzing businesses, stock markets, trading, and entrepreneurship", scores: { commerce: 3 } },
+                    { text: "Writing, debating, politics, psychology, and public policy", scores: { arts: 3 } },
+                    { text: "Creating digital art, editing videos, UI design, or digital media", scores: { modern: 3, arts: 1 } }
+                ]
+            },
+            {
+                question: "2. How do you approach solving a tough problem?",
+                options: [
+                    { text: "By using mathematical logic, step-by-step algorithms, and formulas", scores: { pcm: 3 } },
+                    { text: "By researching biological systems, conducting experiments, and observing details", scores: { pcb: 3 } },
+                    { text: "By looking at financial numbers, cost-benefit analysis, and logical strategy", scores: { commerce: 3 } },
+                    { text: "By analyzing human behavior, history, society, and persuasive arguments", scores: { arts: 3 } },
+                    { text: "By prototyping visual designs, testing user experience, and trying new digital tools", scores: { modern: 3 } }
+                ]
+            },
+            {
+                question: "3. What type of work environment inspires you most?",
+                options: [
+                    { text: "High-tech software lab, engineering hub, or AI research facility", scores: { pcm: 3, modern: 1 } },
+                    { text: "Hospitals, medical clinics, research labs, or biotechnology facilities", scores: { pcb: 3 } },
+                    { text: "Corporate boardrooms, financial firms, investment banks, or startups", scores: { commerce: 3 } },
+                    { text: "Law firms, government administration, journalism studios, or NGOs", scores: { arts: 3 } },
+                    { text: "Creative digital agency, remote tech setup, or game studio", scores: { modern: 3 } }
+                ]
+            },
+            {
+                question: "4. Which subject or topic sounds most exciting to explore deeply?",
+                options: [
+                    { text: "Calculus, Physics, Robotics, and Computer Science", scores: { pcm: 3 } },
+                    { text: "Genetics, Human Anatomy, Pharmacology, and Organic Chemistry", scores: { pcb: 3 } },
+                    { text: "Financial Accounting, Macroeconomics, and Business Management", scores: { commerce: 3 } },
+                    { text: "Constitutional Law, World History, Sociology, and Psychology", scores: { arts: 3 } },
+                    { text: "Graphic Design, Cybersecurity, Game Engine Architecture, and UI/UX", scores: { modern: 3 } }
+                ]
+            },
+            {
+                question: "5. What is your primary superpower or strength?",
+                options: [
+                    { text: "Logical reasoning, spatial visualization, and technical precision", scores: { pcm: 3 } },
+                    { text: "Empathy, patience, memory for detail, and scientific curiosity", scores: { pcb: 3 } },
+                    { text: "Number accuracy, negotiation, market intuition, and organizing data", scores: { commerce: 3 } },
+                    { text: "Public speaking, persuasive writing, critical reading, and communication", scores: { arts: 3 } },
+                    { text: "Creative thinking, aesthetic eye, adapting to new tech tools rapidly", scores: { modern: 3 } }
+                ]
+            },
+            {
+                question: "6. What kind of impact do you want to create in your future career?",
+                options: [
+                    { text: "Building next-generation tech, smart machines, or engineering systems", scores: { pcm: 3, modern: 1 } },
+                    { text: "Curing diseases, advancing healthcare, and saving lives", scores: { pcb: 3 } },
+                    { text: "Building successful businesses, managing wealth, and driving economies", scores: { commerce: 3 } },
+                    { text: "Shaping public policy, fighting for justice, or creating cultural literature", scores: { arts: 3 } },
+                    { text: "Designing revolutionary digital products, games, and creative experiences", scores: { modern: 3 } }
+                ]
+            }
+        ];
+
+        function renderQuizQuestion() {
+            const box = document.getElementById('quiz-question-box');
+            const stepIndicator = document.getElementById('quiz-step-indicator');
+            const percentIndicator = document.getElementById('quiz-progress-percent');
+            const bar = document.getElementById('quiz-bar');
+
+            if(!box) return;
+
+            if (currentQuizStep < quizQuestions.length) {
+                const q = quizQuestions[currentQuizStep];
+                stepIndicator.innerText = 'Question ' + (currentQuizStep + 1) + ' of 6';
+                const percent = Math.round(((currentQuizStep) / 6) * 100);
+                percentIndicator.innerText = percent + '% Completed';
+                bar.style.width = (((currentQuizStep + 1) / 6) * 100) + '%';
+
+                let optionsHtml = '';
+                q.options.forEach((opt, index) => {
+                    optionsHtml += '\
+                        <button type="button" onclick="selectQuizAnswer(' + index + ')" class="w-full text-left p-4 rounded-2xl bg-slate-950/60 border border-slate-800 hover:border-indigo-500 hover:bg-indigo-950/30 transition-all font-medium text-slate-200 flex items-center justify-between group">\
+                            <span>' + opt.text + '</span>\
+                            <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-indigo-400 transition-all"></i>\
+                        </button>\
+                    ';
+                });
+
+                box.innerHTML = '\
+                    <h3 class="text-xl sm:text-2xl font-bold text-white mb-6">' + q.question + '</h3>\
+                    <div class="space-y-3">\
+                        ' + optionsHtml + '\
+                    </div>\
+                ';
+            } else {
+                calculateQuizOutcome();
+            }
+        }
+
+        function selectQuizAnswer(optionIndex) {
+            const selectedOption = quizQuestions[currentQuizStep].options[optionIndex];
+            for (let key in selectedOption.scores) {
+                if (quizScores[key] !== undefined) {
+                    quizScores[key] += selectedOption.scores[key];
+                }
+            }
+            currentQuizStep++;
+            renderQuizQuestion();
+        }
+
+        function calculateQuizOutcome() {
+            const stepIndicator = document.getElementById('quiz-step-indicator');
+            const percentIndicator = document.getElementById('quiz-progress-percent');
+            const bar = document.getElementById('quiz-bar');
+            const box = document.getElementById('quiz-question-box');
+
+            if(!box) return;
+
+            stepIndicator.innerText = "Assessment Complete!";
+            percentIndicator.innerText = "100% Completed";
+            bar.style.width = "100%";
+
+            let totalPoints = 0;
+            for (let key in quizScores) {
+                totalPoints += quizScores[key];
+            }
+
+            let topCategory = 'pcm';
+            let maxScore = -1;
+            for (let key in quizScores) {
+                if (quizScores[key] > maxScore) {
+                    maxScore = quizScores[key];
+                    topCategory = key;
+                }
+            }
+
+            const categoryData = {
+                pcm: {
+                    title: "Science (PCM) & Engineering",
+                    icon: "fa-atom",
+                    color: "from-blue-600 to-indigo-600",
+                    desc: "You thrive on logic, mathematical reasoning, and structural problem-solving. A technical or engineering pathway is an ideal fit!",
+                    targetTab: "academic"
+                },
+                pcb: {
+                    title: "Science (PCB) & Medicine",
+                    icon: "fa-dna",
+                    color: "from-emerald-600 to-teal-600",
+                    desc: "You have a high curiosity for biological sciences, nature, and human biology paired with empathy and scientific rigor.",
+                    targetTab: "academic"
+                },
+                commerce: {
+                    title: "Commerce, Finance & Business",
+                    icon: "fa-chart-line",
+                    color: "from-amber-600 to-orange-600",
+                    desc: "You have strong analytical skills for market trends, financial planning, economics, and business management.",
+                    targetTab: "academic"
+                },
+                arts: {
+                    title: "Arts, Law & Humanities",
+                    icon: "fa-landmark",
+                    color: "from-purple-600 to-indigo-700",
+                    desc: "You possess strong communication, critical thinking, and social analysis skills perfect for Law, Policy, and Creative Arts.",
+                    targetTab: "academic"
+                },
+                modern: {
+                    title: "Modern Tech, UI/UX & Game Dev",
+                    icon: "fa-rocket",
+                    color: "from-pink-600 to-rose-600",
+                    desc: "You are highly creative, innovative, and naturally drawn to digital tools, user experiences, and modern tech design!",
+                    targetTab: "modern"
+                }
+            };
+
+            let match = categoryData[topCategory];
+
+            if (window.confetti) {
+                confetti({
+                    particleCount: 150,
+                    spread: 100,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            box.innerHTML = '\
+                <div class="text-center py-4">\
+                    <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr ' + match.color + ' flex items-center justify-center text-white text-3xl mx-auto mb-6 shadow-xl">\
+                        <i class="fa-solid ' + match.icon + '"></i>\
+                    </div>\
+                    <span class="text-xs uppercase tracking-widest font-bold text-indigo-400 bg-indigo-950 px-3 py-1 rounded-full">Your Best Fit Path</span>\
+                    <h3 class="text-3xl font-extrabold text-white mt-3 mb-2">' + match.title + '</h3>\
+                    <p class="text-slate-400 max-w-md mx-auto mb-6">' + match.desc + '</p>\
+                    \
+                    <div class="bg-slate-950/80 border border-slate-800 p-5 rounded-2xl max-w-md mx-auto mb-8 text-left text-sm space-y-3">\
+                        <div class="font-bold text-slate-200 border-b border-slate-800 pb-2 flex justify-between items-center">\
+                            <span>Match Profile Breakdown</span>\
+                            <span class="text-xs text-indigo-400">Score-weighted</span>\
+                        </div>\
+                        <div class="space-y-2">\
+                            <div class="flex justify-between items-center text-slate-300">\
+                                <span class="text-xs"><i class="fa-solid fa-atom text-blue-400 mr-2"></i>Science (PCM) & Eng.</span>\
+                                <span class="font-bold text-blue-400">' + Math.round((quizScores.pcm / totalPoints) * 100) + '%</span>\
+                            </div>\
+                            <div class="flex justify-between items-center text-slate-300">\
+                                <span class="text-xs"><i class="fa-solid fa-dna text-emerald-400 mr-2"></i>Science (PCB) & Med.</span>\
+                                <span class="font-bold text-emerald-400">' + Math.round((quizScores.pcb / totalPoints) * 100) + '%</span>\
+                            </div>\
+                            <div class="flex justify-between items-center text-slate-300">\
+                                <span class="text-xs"><i class="fa-solid fa-chart-line text-amber-400 mr-2"></i>Commerce & Business</span>\
+                                <span class="font-bold text-amber-400">' + Math.round((quizScores.commerce / totalPoints) * 100) + '%</span>\
+                            </div>\
+                            <div class="flex justify-between items-center text-slate-300">\
+                                <span class="text-xs"><i class="fa-solid fa-landmark text-purple-400 mr-2"></i>Arts, Law & Humanities</span>\
+                                <span class="font-bold text-purple-400">' + Math.round((quizScores.arts / totalPoints) * 100) + '%</span>\
+                            </div>\
+                            <div class="flex justify-between items-center text-slate-300">\
+                                <span class="text-xs"><i class="fa-solid fa-rocket text-pink-400 mr-2"></i>Modern Tech & Design</span>\
+                                <span class="font-bold text-pink-400">' + Math.round((quizScores.modern / totalPoints) * 100) + '%</span>\
+                            </div>\
+                        </div>\
+                    </div>\
+                    \
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">\
+                        <button type="button" onclick="switchTab(\'' + match.targetTab + '\')" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all">\
+                            Explore Matching Stream & Careers\
+                        </button>\
+                        <button type="button" onclick="resetQuiz()" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition-all">\
+                            Retake Quiz\
+                        </button>\
+                    </div>\
+                </div>\
+            ';
+        }
+
+        function resetQuiz() {
+            currentQuizStep = 0;
+            quizScores = { pcm: 0, pcb: 0, commerce: 0, arts: 0, modern: 0 };
+            renderQuizQuestion();
+        }
+
+        // Initialize on Window Load
+        window.onload = function() {
+            renderModernCareers();
+            renderAcademicStreams();
+            renderQuizQuestion();
+        }
+    </script>
+</body>
+</html>
